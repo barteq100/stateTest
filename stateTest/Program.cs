@@ -6,6 +6,7 @@ namespace stateTest
     {
         static void Main(string[] args)
         {
+            var stateListener = new StateListener();
         }
     }
 }

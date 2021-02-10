@@ -6,9 +6,11 @@ namespace stateTest
 {
     public class MyState : IStateRoot
     {
-        public class InitState : State<MyState> { }
+        public class InitState : IState<MyState> { }
 
-        public class EndState : State<MyState> { }
+        public class EndState : IState<MyState> {
+            public int A = 5;
+        }
 
     }
 }

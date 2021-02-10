@@ -14,13 +14,14 @@ namespace stateTest
             StateMachine.OnTransition<MyState.InitState>(OnInit);
             StateMachine.OnTransition<MyState.EndState>(OnEndState);
             StateMachine.Transition(new MyState.InitState());
+            StateMachine.Transition(new MyState.EndState());
         }
-
 
         public void OnEndState(MyState.EndState state)
         {
-            Console.WriteLine("EndState");
+            Console.WriteLine($"EndState A: {state.A}");
         } 
+
         public void OnInit(MyState.InitState state)
         {
             Console.WriteLine("StartState");
