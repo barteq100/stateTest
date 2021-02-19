@@ -11,8 +11,8 @@ namespace stateTest
         public StateListener()
         {
             StateMachine = new FSM<MyState>();
-            StateMachine.OnTransition<MyState.InitState>(OnInit);
-            StateMachine.OnTransition<MyState.EndState>(OnEndState);
+            StateMachine.OnEnter<MyState.InitState>(OnInit);
+            StateMachine.OnEnter<MyState.EndState>(OnEndState);
             StateMachine.Transition(new MyState.InitState());
             StateMachine.Transition(new MyState.EndState());
         }

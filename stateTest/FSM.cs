@@ -1,49 +1,65 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace stateTest
 {
-    public class StateDelegate<T> where T : IStateRoot
-    {
-        public delegate void StateTransition<K>(K state);
-    }
     public interface IStateRoot
     {
-
+        
     }
+    public interface IStateRoot<T> : IStateRoot
+    {
+    }
+
+    public class StateRoot<T> : IStateRoot<T>
+    {
+    }
+
     public interface IState { }
     public interface IState<T> : IState
     {
 
     }
 
-    public class State<T> : IState<T> where T: IStateRoot
+
+    public class State<T> : IState<T> where T : StateRoot<T>
     {
         public delegate void StateTransition(IState<T> state);
+        public StateTransition OnEnter;
+        public StateTransition OnExit;
+
     }
 
-    public class FSM<T> where T: IStateRoot
+    public class FSM<T> where T: StateRoot<T>
     {
+        private State<T> CurrentState { get; set; }
+        private Dictionary<Type, State<T>> States = new Dictionary<Type, State<T>>();
+        private Dictionary<Type, State<T>.StateTransition> Transitions = new Dictionary<Type, State<T>.StateTransition>();
 
-        public Dictionary<Type, State<T>.StateTransition> Transitions;
-        public IState<T> State { get; set; }
-        
-        public FSM() { 
-            Transitions = new Dictionary<Type, State<T>.StateTransition>();
+        public FSM()
+        {
         }
-        public FSM(IState<T> init)
+
+        public FSM(State<T> init)
         {
            Transition(init);
         }
 
-        public void Transition<K>(K nextState) where K : IState
+
+        public void Transition<K>(K nextState) where K : State<T>
         {
-            if (Transitions.TryGetValue(typeof(K), out var value))
+            CurrentState?.OnExit?.Invoke(CurrentState);
+            State<T> state;
+            if (!States.TryGetValue(typeof(K), out state))
             {
-                value?.Invoke((IState<T>)nextState);
+                States.Add(typeof(K), Activator.CreateInstance<K>());
             }
-            State = (IState<T>)nextState;
+            nextState.OnEnter = States[typeof(K)].OnEnter;
+            nextState.OnExit = States[typeof(K)].OnExit;
+            nextState.OnEnter?.Invoke(nextState);
+            CurrentState = nextState;
         }
 
         public void OnTransition<K>(Action<K> action)
@@ -57,6 +73,26 @@ namespace stateTest
             Transitions.Add(typeof(K), ParseAction(action));
         }
 
+        public void OnEnter<K>(Action<K> action) where K : State<T>
+        {
+            State<T> state;
+            if(!States.TryGetValue(typeof(K), out state))
+            {
+                States.Add(typeof(K), Activator.CreateInstance<K>());
+            }
+            States[typeof(K)].OnEnter += ParseAction(action);
+        }
+
+        public void OnExit<K>(Action<K> action) where K : State<T>
+        {
+            State<T> state;
+            if (!States.TryGetValue(typeof(K), out state))
+            {
+                States.Add(typeof(K), Activator.CreateInstance<K>());
+            }
+            States[typeof(K)].OnExit += ParseAction(action);
+        }
+
         private State<T>.StateTransition ParseAction<K>(Action<K> action)
         {
             void callbackAction(IState<T> state)
@@ -65,6 +101,7 @@ namespace stateTest
             }
             return callbackAction;
         }
+
 
     }
 

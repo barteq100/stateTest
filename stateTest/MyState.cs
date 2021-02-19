@@ -4,11 +4,12 @@ using System.Text;
 
 namespace stateTest
 {
-    public class MyState : IStateRoot
+    public class MyState : StateRoot<MyState>
     {
-        public class InitState : IState<MyState> { }
+        public class InitState : State<MyState> { 
+        }
 
-        public class EndState : IState<MyState> {
+        public class EndState : State<MyState> {
             public int A = 5;
         }
 
